@@ -155,7 +155,7 @@ contract Curator {
     
     //Checks if user has voted for a particular track
     function hasUserVotedForTrack(bytes32 trackHash, address userId) private view returns(bool){
-      users storage matchedUser = musicMapUsers[userId];
+      Users storage matchedUser = musicMapUsers[userId];
       Vote matchedUserVote = matchedUser.votes[trackHash];
       if(matchedUserVote == Vote.VOUCH || matchedUserVote == Vote.REJECT){
           return true;
