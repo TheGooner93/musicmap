@@ -7,20 +7,20 @@ contract Curator {
     int public averageScore;                                  //this value gets updated with new entries of tracks or with every user action
 
     //mapping of a userid to a users struct
-    mapping(address => users) public musicMapUsers;
+    mapping(address => Users) public musicMapUsers;
     //mapping for trackhash to song details
-    mapping(bytes32 => tracks) public musicMapTracks;
+    mapping(bytes32 => Track) public musicMapTracks;
     
     address[] public allUsers;
     bytes32[] public allTracks;
     /************* structs ***************/
-    struct tracks {
+    struct Track {
         bytes32 hash;                                //this is a hash of all metadata (stored offchain in mongodb for that track)(also acts as track id)  
         int score;                                  //sum total of positive and negative votes for this track
         mapping(address => Vote) userVotes;          //total users who voted for this track and mapping of userId with Votes struct
         State state;                                //state of the track {SANDBOX, WHITELIST}
     }
-    struct users {
+    struct Users {
         address id;                              //public key of a user
         int vouchCredits;                      //total credits earned by user when vouched for a track
         int rejectCredits;                     //total credits earned by user when rejected a track
@@ -30,10 +30,10 @@ contract Curator {
     }
     
     /**************  constants ********************/
-    uint WhitelistThreshold = 10;
-    int BlacklistThreshold = -100;
-    uint UserDailyVoteCap = 10;
-    uint PunishmentMultiplier = 5;
+    uint8 constant WhitelistThreshold = 10;
+    int16 constant BlacklistThreshold = -100;
+    uint8 constant UserDailyVoteCap = 10;
+    uint8 constant PunishmentMultiplier = 5;
     
     /**************** enums *****************/
     enum Vote {NOVOTE, VOUCH, REJECT}
@@ -81,7 +81,7 @@ contract Curator {
             musicMapTracks[trackHash].userVotes[userId] = Vote.VOUCH;
             
             //Incrementing the score only in case of an existing track
-            if(_stringCompare(musicMapTracks[trackHash].hash, trackHash) != false){
+            if(_hashCompare(musicMapTracks[trackHash].hash, trackHash) != false){
                 musicMapTracks[trackHash].score += 1;
             }
             //Update the genreScore
@@ -100,7 +100,7 @@ contract Curator {
             musicMapTracks[trackHash].userVotes[userId] = Vote.REJECT;
             
             //Decrementing the score only in case of an existing track
-            if(_stringCompare(musicMapTracks[trackHash].hash, trackHash) != false){
+            if(_hashCompare(musicMapTracks[trackHash].hash, trackHash) != false){
                 musicMapTracks[trackHash].score -= 1;
             }
             
@@ -109,7 +109,7 @@ contract Curator {
         }
         
         //Entering the trackHash, only if it isnt already existent
-        if(_stringCompare(musicMapTracks[trackHash].hash, trackHash) == false){
+        if(_hashCompare(musicMapTracks[trackHash].hash, trackHash) == false){
             musicMapTracks[trackHash].hash = trackHash;
             allTracks.push(trackHash);
             totalTracks +=1;
@@ -165,7 +165,7 @@ contract Curator {
     }
     
     //Returns true if string1 and string2 are the same, returns false if not
-    function _stringCompare(bytes32 string1, bytes32 string2) private pure returns(bool){
+    function _hashCompare(bytes32 string1, bytes32 string2) private pure returns(bool){
         
         if(string1.length != string2.length){
             return false;
@@ -180,7 +180,7 @@ contract Curator {
     
     //Checks if the maximum vote cap for the day is reached
     function _isVoteCapReached(address userId) private view returns(bool){
-        if(musicMapUsers[userId].dayVoteCount == 10){
+        if(musicMapUsers[userId].dayVoteCount == UserDailyVoteCap){
             return true;
         }else{
             return false;
