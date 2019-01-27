@@ -1,11 +1,14 @@
 pragma solidity ^0.5.0;
 
+/// @title A smart contract for music curation
+/// @author TheGooner93
+/// @notice Enables voting mechanisms for users in a single music genre
 contract Curator {
     /**************  variables **********************/
     int public genreScore ;
     uint public totalTracks ;
-    int public averageScore;                                  //this value gets updated with new entries of tracks or with every user action
-
+    int public averageScore;                        
+    
     //mapping of a userid to a users struct
     mapping(address => Users) public musicMapUsers;
     //mapping for trackhash to song details
@@ -15,16 +18,16 @@ contract Curator {
     bytes32[] public allTracks;
     /************* structs ***************/
     struct Track {
-        bytes32 hash;                                //this is a hash of all metadata (stored offchain in mongodb for that track)(also acts as track id)  
-        int score;                                  //sum total of positive and negative votes for this track
-        mapping(address => Vote) userVotes;          //total users who voted for this track and mapping of userId with Votes struct
-        State state;                                //state of the track {SANDBOX, WHITELIST}
+        bytes32 hash;                            //this is a hash of all metadata(trackId) 
+        int score;                               //sum total of positive and negative votes for this track
+        mapping(address => Vote) userVotes;      //total users who voted for this track and mapping of userId with Votes struct
+        State state;                             //state of the track
     }
     struct Users {
         address id;                              //public key of a user
-        int vouchCredits;                      //total credits earned by user when vouched for a track
-        int rejectCredits;                     //total credits earned by user when rejected a track
-        mapping (bytes32 => Vote) votes;         //tracks all songs this user has voted on and mapping of track hash with user’s vote {VOUCH, REJECT}
+        int vouchCredits;                        //total credits earned by user when vouched for a track
+        int rejectCredits;                       //total credits earned by user when rejected a track
+        mapping (bytes32 => Vote) votes;         //tracks all songs this user has voted on and mapping of track hash with user’s vote
         mapping (bytes32 => bool) penaltyTracks; //tracks the songs for which the user has paid a penalty due to opposite threshold violation
         uint dayVoteCount;
     }
@@ -40,12 +43,17 @@ contract Curator {
     enum State {NONEXISTENT, BLACKLIST, SANDBOX, WHITELIST}
     
     /****** functions *********/
-    //this function vouches or rejects the given track based on user vote 
-    function vouchOrReject (string memory trackHashString, bool didVouch) public payable{
+    
+    /// @author TheGooner93
+    /// @notice Vouch or reject the given track based on user vote 
+    /// @param trackHashString Hash of the track being voted upon
+    /// @param didVouch Indicates whether tracks was vouched or rejected
+    function vouchOrReject (string memory trackHashString, bool didVouch) public{
         bytes32 trackHash;
         assembly{
              trackHash := mload(add(trackHashString,32))
         }
+        
         address userId = msg.sender;
         
         //check if user has not already voted for this track
@@ -55,7 +63,6 @@ contract Curator {
         if(!hasVoted && !_isVoteCapReached(userId)){
            //update above mappings appropritely after calculating new state of the track in playlist 
            //and appropriate credits for this user and other users who voted for this track
-            
             if(_isRejected(trackHash) == false){
                 _distributeCredits(trackHash, didVouch, userId);
                 _updateAverageScore();
@@ -64,15 +71,19 @@ contract Curator {
         }
     }
     
-    //this function distributes credits appropriately based on game mechanics 
+    /// @author TheGooner93
+    /// @notice Distributes credits appropriately based on game mechanics 
+    /// @param trackHash Hash of the track being voted upon
+    /// @param didVouch Indicates whether tracks was vouched or rejected
+    /// @param userId Address of the user
     function _distributeCredits(bytes32 trackHash, bool didVouch, address userId) private {
             
         //Apply votes
         if(didVouch){
             //Distribute credits to previous vouch-ers
-            for(uint i=0; i<allUsers.length; i++){
+            for(uint i = 0; i<allUsers.length; i++){
                 if(musicMapTracks[trackHash].userVotes[allUsers[i]] == Vote.VOUCH){
-                    musicMapUsers[allUsers[i]].vouchCredits +=1;
+                    musicMapUsers[allUsers[i]].vouchCredits += 1;
                 }
             }
             
@@ -89,7 +100,7 @@ contract Curator {
             
         }else{
             //Distribute credits to previous rejecters
-            for(uint i=0; i<allUsers.length; i++){
+            for(uint i = 0; i<allUsers.length; i++){
                 if(musicMapTracks[trackHash].userVotes[allUsers[i]] == Vote.REJECT){
                     musicMapUsers[allUsers[i]].rejectCredits += 1;
                 }
@@ -112,7 +123,7 @@ contract Curator {
         if(_hashCompare(musicMapTracks[trackHash].hash, trackHash) == false){
             musicMapTracks[trackHash].hash = trackHash;
             allTracks.push(trackHash);
-            totalTracks +=1;
+            totalTracks += 1;
              //Entering any new track into SANDBOX registry and it gets initialized with a score of zero
             musicMapTracks[trackHash].state = State.SANDBOX;
         }
@@ -138,13 +149,17 @@ contract Curator {
         }
     }
     
-    //this function updates average score of this genre with every user action
+    /// @author TheGooner93
+    /// @notice Updates average score of this genre with every user action
     function _updateAverageScore() private{
         averageScore = genreScore/int256(totalTracks);
     }
     
-    //this function checks if given track is rejected ie. is in the blacklist
-    function _isRejected(bytes32 trackHash) private view returns(bool){
+    /// @author TheGooner93
+    /// @notice Checks if given track is rejected ie. is in the blacklist
+    /// @param trackHash Hash of the track being voted upon
+    /// @return true if the track has been blacklisted
+    function _isRejected(bytes32 trackHash) public view returns(bool){
         if(musicMapTracks[trackHash].state == State.BLACKLIST){
             return true;
         }
@@ -153,7 +168,11 @@ contract Curator {
     
     //New functions
     
-    //Checks if user has voted for a particular track
+    /// @author TheGooner93
+    /// @notice Checks if user has voted for a particular track
+    /// @param trackHash Hash of the track being voted upon
+    /// @param userId Address of the user
+    /// @return true if the user has already voted for a track
     function hasUserVotedForTrack(bytes32 trackHash, address userId) private view returns(bool){
       Users storage matchedUser = musicMapUsers[userId];
       Vote matchedUserVote = matchedUser.votes[trackHash];
@@ -164,21 +183,23 @@ contract Curator {
        }  
     }
     
-    //Returns true if string1 and string2 are the same, returns false if not
+    /// @author TheGooner93
+    /// @notice Hash comparison function
+    /// @param string1 First track hash
+    /// @param string2 Second track hash
+    /// @return true if string1 and string2 are the same, returns false if not
     function _hashCompare(bytes32 string1, bytes32 string2) private pure returns(bool){
-        
-        if(string1.length != string2.length){
+        if(keccak256(abi.encode(string1)) == keccak256(abi.encode(string2))){
+            return true;
+        }else{
             return false;
         }
-        for(uint i = 0; i<string1.length; i++){
-            if(string1[i] != string2[i]){
-                return false;
-            }
-        }
-        return true;
     }
     
-    //Checks if the maximum vote cap for the day is reached
+    /// @author TheGooner93
+    /// @notice Checks if the maximum vote cap for the day is reached
+    /// @param userId Address of the user
+    /// @return true if the maximum vote cap for the day for the userId is reached
     function _isVoteCapReached(address userId) private view returns(bool){
         if(musicMapUsers[userId].dayVoteCount == UserDailyVoteCap){
             return true;
@@ -187,19 +208,22 @@ contract Curator {
         }
     }
     
-    //resets the vote count for every user
+    /// @author TheGooner93
+    /// @notice Resets all vote counts
     function resetVoteCount() public{
-        for(uint i=0; i<allUsers.length; i++){
+        for(uint i = 0; i<allUsers.length; i++){
             if(musicMapUsers[allUsers[i]].dayVoteCount != 0){
                 musicMapUsers[allUsers[i]].dayVoteCount = 0;
             }
         }
     }
     
-    //applies penalties for users with conflicting votes
+    /// @author TheGooner93
+    /// @notice Applies penalties for users with conflicting votes
+    /// @param trackHash Hash of the track pertaining to penalty applied
     function _applyRelevantPenalties(bytes32 trackHash) private{
         if(musicMapTracks[trackHash].state == State.WHITELIST){
-            for(uint i=0; i<allUsers.length;i++){
+            for(uint i = 0; i<allUsers.length;i++){
                 //if user has voted 'Reject' on this track and if no penalty has been awarded yet for this track
                 if(musicMapTracks[trackHash].userVotes[allUsers[i]] == Vote.REJECT && musicMapUsers[allUsers[i]].penaltyTracks[trackHash] != true){
                     //Slash challenger score by (TR-WT)
@@ -209,7 +233,7 @@ contract Curator {
                 }
             }
         }else if(musicMapTracks[trackHash].state == State.BLACKLIST){
-            for(uint i=0; i<allUsers.length;i++){
+            for(uint i = 0; i<allUsers.length;i++){
                 //if user has voted 'Vouch' on this track and if no penalty has been awarded yet for this track
                 if(musicMapTracks[trackHash].userVotes[allUsers[i]] == Vote.VOUCH && musicMapUsers[allUsers[i]].penaltyTracks[trackHash] != true){
                     //Slash defender score by PunishmentMultiplier * averageScore
