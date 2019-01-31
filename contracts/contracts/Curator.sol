@@ -48,7 +48,8 @@ contract Curator {
     /// @notice Vouch or reject the given track based on user vote 
     /// @param trackHashString Hash of the track being voted upon
     /// @param didVouch Indicates whether tracks was vouched or rejected
-    function vouchOrReject (string memory trackHashString, bool didVouch) public{
+    /// @return true if vouch/reject is succesful, false otherwise
+    function vouchOrReject (string memory trackHashString, bool didVouch) public returns(bool){
         bytes32 trackHash;
         assembly{
              trackHash := mload(add(trackHashString,32))
@@ -66,9 +67,10 @@ contract Curator {
             if(_isRejected(trackHash) == false){
                 _distributeCredits(trackHash, didVouch, userId);
                 _updateAverageScore();
+                return true;
             }
-            
         }
+        return false;
     }
     
     /// @author TheGooner93
@@ -210,12 +212,14 @@ contract Curator {
     
     /// @author TheGooner93
     /// @notice Resets all vote counts
-    function resetVoteCount() public{
+    /// @return true once the counts are reset
+    function resetVoteCount() public returns(bool){
         for(uint i = 0; i<allUsers.length; i++){
             if(musicMapUsers[allUsers[i]].dayVoteCount != 0){
                 musicMapUsers[allUsers[i]].dayVoteCount = 0;
             }
         }
+        return true;
     }
     
     /// @author TheGooner93
