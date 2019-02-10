@@ -49,10 +49,7 @@ contract Curator {
     /// @param didVouch Indicates whether tracks was vouched or rejected
     /// @return true if vouch/reject is succesful, false otherwise
     function vouchOrReject (string memory trackHashString, bool didVouch) public returns(bool){
-        bytes32 trackHash;
-        assembly{
-             trackHash := mload(add(trackHashString,32))
-        }
+        bytes32 trackHash = keccak256(abi.encode(trackHashString));
         
         address userId = msg.sender;
         
