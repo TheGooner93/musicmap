@@ -44,7 +44,6 @@ contract Curator {
     
     /****** functions *********/
     
-    /// @author TheGooner93
     /// @notice Vouch or reject the given track based on user vote 
     /// @param trackHashString Hash of the track being voted upon
     /// @param didVouch Indicates whether tracks was vouched or rejected
@@ -73,7 +72,6 @@ contract Curator {
         return false;
     }
     
-    /// @author TheGooner93
     /// @notice Distributes credits appropriately based on game mechanics 
     /// @param trackHash Hash of the track being voted upon
     /// @param didVouch Indicates whether tracks was vouched or rejected
@@ -151,13 +149,11 @@ contract Curator {
         }
     }
     
-    /// @author TheGooner93
     /// @notice Updates average score of this genre with every user action
     function _updateAverageScore() private{
         averageScore = genreScore/int256(totalTracks);
     }
     
-    /// @author TheGooner93
     /// @notice Checks if given track is rejected ie. is in the blacklist
     /// @param trackHash Hash of the track being voted upon
     /// @return true if the track has been blacklisted
@@ -170,7 +166,6 @@ contract Curator {
     
     //New functions
     
-    /// @author TheGooner93
     /// @notice Checks if user has voted for a particular track
     /// @param trackHash Hash of the track being voted upon
     /// @param userId Address of the user
@@ -185,7 +180,6 @@ contract Curator {
        }  
     }
     
-    /// @author TheGooner93
     /// @notice Hash comparison function
     /// @param string1 First track hash
     /// @param string2 Second track hash
@@ -198,7 +192,6 @@ contract Curator {
         }
     }
     
-    /// @author TheGooner93
     /// @notice Checks if the maximum vote cap for the day is reached
     /// @param userId Address of the user
     /// @return true if the maximum vote cap for the day for the userId is reached
@@ -210,7 +203,6 @@ contract Curator {
         }
     }
     
-    /// @author TheGooner93
     /// @notice Resets all vote counts
     /// @return true once the counts are reset
     function resetVoteCount() public returns(bool){
@@ -222,7 +214,6 @@ contract Curator {
         return true;
     }
     
-    /// @author TheGooner93
     /// @notice Applies penalties for users with conflicting votes
     /// @param trackHash Hash of the track pertaining to penalty applied
     function _applyRelevantPenalties(bytes32 trackHash) private{
