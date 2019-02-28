@@ -6,7 +6,7 @@ contract("Curator", function(accounts){
             return Curator.deployed().then(function(instance){
                 return instance.vouchOrReject.call("t1", true, {from: accounts[0]});
             }).then(function(voteSuccessful){
-                assert.equal(voteSuccessful, true, "Voting is successful");
+                assert.equal(voteSuccessful, true, "Vouch Voting is successful");
             });
         });
     
@@ -14,7 +14,7 @@ contract("Curator", function(accounts){
             return Curator.deployed().then(function(instance){
                 return instance.vouchOrReject.call("t1", false, {from: accounts[1]});
             }).then(function(voteSuccessful){
-                assert.equal(voteSuccessful, true, "Voting is successful");
+                assert.equal(voteSuccessful, true, "Reject Voting is successful");
             });
         });
     

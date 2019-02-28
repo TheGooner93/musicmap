@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "ethereumjs-testrpc": "^6.0.3",
+    "openzeppelin-solidity": "^2.1.2",
     "solidity-coverage": "^0.5.11",
     "truffle": "^5.0.2",
     "truffle-hdwallet-provider": "^1.0.2"

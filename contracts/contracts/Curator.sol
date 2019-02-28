@@ -78,7 +78,8 @@ contract Curator {
         //Apply votes
         if(didVouch){
             //Distribute credits to previous vouch-ers
-            for(uint i = 0; i<allUsers.length; i++){
+            uint256 allUsersLength = allUsers.length;
+            for(uint256 i = 0; i<allUsersLength; i++){
                 if(musicMapTracks[trackHash].userVotes[allUsers[i]] == Vote.VOUCH){
                     musicMapUsers[allUsers[i]].vouchCredits += 1;
                 }
@@ -97,7 +98,8 @@ contract Curator {
             
         }else{
             //Distribute credits to previous rejecters
-            for(uint i = 0; i<allUsers.length; i++){
+            uint256 allUsersLength = allUsers.length;
+            for(uint256 i = 0; i<allUsersLength; i++){
                 if(musicMapTracks[trackHash].userVotes[allUsers[i]] == Vote.REJECT){
                     musicMapUsers[allUsers[i]].rejectCredits += 1;
                 }
@@ -203,7 +205,8 @@ contract Curator {
     /// @notice Resets all vote counts
     /// @return true once the counts are reset
     function resetVoteCount() public returns(bool){
-        for(uint i = 0; i<allUsers.length; i++){
+        uint256 allUsersLength = allUsers.length;
+        for(uint256 i = 0; i<allUsersLength; i++){
             if(musicMapUsers[allUsers[i]].dayVoteCount != 0){
                 musicMapUsers[allUsers[i]].dayVoteCount = 0;
             }
@@ -215,7 +218,8 @@ contract Curator {
     /// @param trackHash Hash of the track pertaining to penalty applied
     function _applyRelevantPenalties(bytes32 trackHash) private{
         if(musicMapTracks[trackHash].state == State.WHITELIST){
-            for(uint i = 0; i<allUsers.length;i++){
+            uint256 allUsersLength = allUsers.length;
+            for(uint256 i = 0; i<allUsersLength; i++){
                 //if user has voted 'Reject' on this track and if no penalty has been awarded yet for this track
                 if(musicMapTracks[trackHash].userVotes[allUsers[i]] == Vote.REJECT && musicMapUsers[allUsers[i]].penaltyTracks[trackHash] != true){
                     //Slash challenger score by (TR-WT)
@@ -225,7 +229,8 @@ contract Curator {
                 }
             }
         }else if(musicMapTracks[trackHash].state == State.BLACKLIST){
-            for(uint i = 0; i<allUsers.length;i++){
+            uint256 allUsersLength = allUsers.length;
+            for(uint256 i = 0; i<allUsersLength; i++){
                 //if user has voted 'Vouch' on this track and if no penalty has been awarded yet for this track
                 if(musicMapTracks[trackHash].userVotes[allUsers[i]] == Vote.VOUCH && musicMapUsers[allUsers[i]].penaltyTracks[trackHash] != true){
                     //Slash defender score by PunishmentMultiplier * averageScore
